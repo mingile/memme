@@ -1,33 +1,68 @@
-This is a [Plasmo extension](https://docs.plasmo.com/) project bootstrapped with [`plasmo init`](https://www.npmjs.com/package/plasmo).
+# MemMe
 
-## Getting Started
+## Memo To Memory.
 
-First, run the development server:
+**간단한 메모를 장기 기억으로.**
 
-```bash
-pnpm dev
-# or
-npm run dev
-```
+MemMe는 가볍고 빠른 메모를 위한 Chrome Side Panel 확장 프로그램입니다.
+브라우저를 통해 글을 읽거나 유튜브를 보면서 문득 떠오르는 생각을 쉽게 기록해보세요.
+작은 메모가 쌓여 귀하의 장기 기억으로 오랫동안 기록될 것입니다.
 
-Open your browser and load the appropriate development build. For example, if you are developing for the chrome browser, using manifest v3, use: `build/chrome-mv3-dev`.
+✨ Why MemMe?
+MemMe는 간단합니다.
+• 회원가입 없습니다.
+• API/클라우드 연결 없습니다.
+• 사용자의 개인정보를 요구하지 않습니다.
+• 사용자의 활동을 추적하지 않습니다.
 
-You can start editing the popup by modifying `popup.tsx`. It should auto-update as you make changes. To add an options page, simply add a `options.tsx` file to the root of the project, with a react component default exported. Likewise to add a content page, add a `content.ts` file to the root of the project, importing some module and do some logic, then reload the extension on your browser.
+단지 기록하고 기억하면 그 뿐입니다.
 
-For further guidance, [visit our Documentation](https://docs.plasmo.com/)
+🧠 메인 컨셉
+• 일반 메모는 자유롭게 작성
+• 중요한 메모는 Remember 버튼으로 저장
+• 저장된 메모는 Memory Shelf에 보관
+• 언제든 다시 불러와 편집 가능
 
-## Making production build
+📝 Features (v1)
+• ✍️ Markdown 지원 (Edit / Preview 토글)
+• 💾 자동 저장
+• 📚 Memory Shelf (저장된 메모 리스트)
+• 🔄 클릭 한 번으로 메모 불러오기
+• ⚡ 빠른 반응성 / 미니멀 UI
+• 🔒 100% 로컬 저장
 
-Run the following:
+🔐 Privacy First
 
-```bash
-pnpm build
-# or
-npm run build
-```
+MemMe는:
+• 개인 데이터를 수집하지 않습니다.
+• 외부 서버로 데이터를 전송하지 않습니다.
+• 추적/분석 도구를 포함하지 않습니다.
 
-This should create a production bundle for your extension, ready to be zipped and published to the stores.
+모든 메모는 Chrome Storage API를 사용해 귀하의 브라우저에만 저장됩니다.
 
-## Submit to the webstores
+🛠 Tech Stack
+• React
+• TypeScript
+• Plasmo (Chrome Extension MV3)
+• Chrome Storage API
 
-The easiest way to deploy your Plasmo extension is to use the built-in [bpp](https://bpp.browser.market) GitHub action. Prior to using this action however, make sure to build your extension and upload the first version to the store to establish the basic credentials. Then, simply follow [this setup instruction](https://docs.plasmo.com/framework/workflows/submit) and you should be on your way for automated submission!
+🎯 Design Philosophy
+• Minimal by default
+• Fast interaction
+• No cognitive overload
+• Write first, organize later
+
+🚀 Roadmap (Early Stage)
+• UX polish
+• Memory revisit features
+• Optional sync mode
+• Page-aware context features
+
+👋 Feedback
+MemMe는 아직 초기 버전입니다.
+사용해보고 느낀 점을 자유롭게 공유해주세요. (제발~~ 🙏)
+
+🏪 Chrome Web Store Short Description (초안)
+
+MemMe is a minimal side-panel memo extension for Chrome.
+Write instantly, save automatically, and keep important notes in your Memory Shelf — all locally stored.

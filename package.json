@@ -1,8 +1,8 @@
 {
-  "name": "memorian",
-  "displayName": "Memorian",
+  "name": "memme",
+  "displayName": "MemMe",
   "version": "0.0.1",
-  "description": "quick, effective note for everyone",
+  "description": "memo to memory",
   "author": "mingile",
   "scripts": {
     "dev": "plasmo dev",

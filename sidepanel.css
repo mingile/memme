@@ -10,6 +10,15 @@ body {
     font-size: 14px;
     background: #ffffff;
     color: #111;
+    height: 100vh;
+    overflow: hidden;
+}   
+
+.container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
 }
 
 h1 {
@@ -18,23 +27,88 @@ h1 {
     font-weight: 600;
 }
 
-textarea {
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-buttons {
+    display: flex;
+    gap: 6px;
+}
+
+.header button {
+    padding: 4px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+
+#memo {
     width: 100%;
-    height: calc(100vh - 60px);
-    resize: none;
-    padding: 8px;
+    flex: 1;
+    padding: 12px;
     font-size: 14px;
-    line-height: 1.5;
+    resize: none;
     border: 1px solid #ddd;
     border-radius: 4px;
 }
 
-textarea:focus {
+#memo:focus {
     outline: none;
     border-color: #999;
 }
 
+.memory-container {
+    padding-bottom: 12px;
+}
+
+.memory-list {
+    padding-left: 0;
+    padding-bottom: 25px;
+    margin: 0;
+}
+
+.memory-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    list-style: none;
+    border-bottom: 1px solid #ddd;
+    cursor: pointer;
+}
+
+.memory-item:hover{
+    background-color: #f0f0f0;
+}
+
+.memory-title {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.memory-date {
+    font-size: 11px;
+    color: #666;
+    margin-left: auto;
+    margin-right: 12px;
+}
+
+.delete-button {
+    text-align: right;
+    cursor: pointer;
+    font-size: 16px;
+    color: #666;
+}
+
 .status {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
     margin-top: 1px;
     font-size: 12px;
     color: #666;
@@ -43,9 +117,4 @@ textarea:focus {
 .title {
     font-size: 16px;
     font-weight: 600;
-    float: left;
-}
-
-#clear {
-    float: right;
 }

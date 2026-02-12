@@ -1,4 +1,6 @@
-function saveMemoToStorage(key, value) {
+// 1. currentMemo: 현재 작성 중인 메모
+
+function saveCurrentMemo(key: string, value: string) {
     // return chrome.storage.local.set({ [key]: value })
     if (String(value).includes('!@#')) {
         // value에 '!'가 포함되어 있으면 의도적으로 Promise.reject로 에러를 리턴함.
@@ -10,31 +12,68 @@ function saveMemoToStorage(key, value) {
     return chrome.storage.local.set({ [key]: value })
 }
 
-function loadMemo(key) {
-    // chrome.storage.local.get()은 Promise를 반환하지 않고 void를 반환합니다.
-    // Chrome Extension API는 콜백 기반이지만, Manifest V3에서는 Promise를 지원합니다.
-    // 하지만 TypeScript 타입 정의가 제대로 되어있지 않거나, 
-    // 또는 async/await 패턴을 사용해야 할 수도 있습니다.
-
-    // 해결 방법 1: async/await 사용
-    return new Promise((resolve) => {
-        chrome.storage.local.get(key, (result) => {
-            const res = result[key];
-            resolve(res);
-        });
+function loadCurrentMemo(key: string | undefined) {
+    if (key == undefined) {
+        return Promise.reject(new Error('key is undefined'));
+    }
+    return chrome.storage.local.get(key).then(result => {
+        const res = result[key];
+        return res as string;
     });
-
-    // 해결 방법 2: 만약 Manifest V3를 사용 중이라면
-    // return chrome.storage.local.get(key).then(result => {
-    //     const res = result[key];
-    //     return res;
-    // });
 }
 
-function clearMemoFromStorage(key) {
+function clearCurrentMemo(key: string | undefined) {
     return chrome.storage.local.remove(key);
     // return Promise.reject(new Error('초기화실패'));
 }
 
-export { saveMemoToStorage, loadMemo, clearMemoFromStorage };
+// 2. memories: 저장된 메모 목록
+
+type MemoryItem = {id: string, title: string, content: string, createdAt: string};
+
+function loadMemories( key: string | undefined ) : Promise<MemoryItem[]> {
+    if (key == undefined) {
+        return Promise.reject(new Error('key is undefined'));
+    }
+    return chrome.storage.local.get(key).then(result => {
+        const res = result[key];
+        return res as MemoryItem[];
+    });
+}
+
+function addMemory (key: string | undefined, item: MemoryItem) : Promise<MemoryItem[]> {
+    if (key == undefined) {
+        return Promise.reject(new Error('key is undefined'));
+    }
+    // 기존 배열을 불러와서 맨 앞에 추가
+    return chrome.storage.local.get(key).then(result => {
+        const memories = result[key] as MemoryItem[];
+        if (result[key] == undefined) {
+            return chrome.storage.local.set({ [key]: [item] }).then(() => {
+                return [item];
+            });
+        }
+        memories.unshift(item);
+        return chrome.storage.local.set({ [key]: memories }).then(() => {
+            // 저장하고, "새 배열"을 리턴
+            return memories;
+        });
+    });
+}
+
+    function deleteMemory (key: string | undefined, id: string) : Promise<MemoryItem[]> {
+        if (key == undefined) {
+            return Promise.reject(new Error('key is undefined'));
+        }
+        return chrome.storage.local.get(key).then(result => {
+            const memories = result[key] as MemoryItem[];
+            const filteredMemories = memories.filter(mem => mem.id !== id);
+            return chrome.storage.local.set({ [key]: filteredMemories }).then(() => {
+                return filteredMemories;
+            });
+        });
+    }
+
+export { saveCurrentMemo, loadCurrentMemo, clearCurrentMemo, loadMemories, addMemory, deleteMemory };
+export type { MemoryItem };
 
