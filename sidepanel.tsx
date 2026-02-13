@@ -11,6 +11,7 @@ export default function Sidepanel() {
     const [toastText, setToastText] = useState('');
     const [isAdding, setIsAdding] = useState(false);
     const [memories, setMemories] = useState<MemoryItem[]>([]);
+    const [view,setView] = useState<'compose' | 'library'>('compose');
 
 
     const displayText = toastText !== '' ? toastText : status === 'idle' ? '' : status === 'typing' ? '입력 중...' : status === 'saved' ? '저장됨' : status === 'error' ? '저장 실패' : '';
@@ -67,15 +68,15 @@ export default function Sidepanel() {
 }, []);
 
     return (
-        <div className="container">
+        <div className={"container" + (view === 'library' ? ' library' : '')}>
             <div className="header">
                 <h1 className="title">Memo</h1>
-                <div className="header-buttons">
+                {
+                    view === 'compose' && (
+                    <div className="header-buttons">
                 <button id="save" disabled={isAdding} onClick={() => {
                     if (isAdding) return;
-                    setIsAdding(prev => {
-                        return true;
-                    });
+                    setIsAdding(true);
                     if (!memoText.trim()) {
                         showToast('메모를 입력해주세요');
                         setIsAdding(false);
@@ -87,12 +88,10 @@ export default function Sidepanel() {
                         content: memoText,
                         createdAt: new Date().toISOString(),
                     }
-                    addMemory(STORAGE_MEMORIES_KEY, item).then(() => {
+                    addMemory(STORAGE_MEMORIES_KEY, item).then(newList => {
                         showToast('기억함')
                         setMemoText('')
-                        setMemories(prev => {
-                            return [item, ...prev];
-                        });
+                        setMemories(newList);
                         memoRef.current?.focus();
                     }).catch(err => {
                         showToast(err.message)
@@ -128,6 +127,7 @@ export default function Sidepanel() {
                     });
                 }}>메모 초기화</button>
                 </div>
+            )}
             </div>
 
             <textarea ref={memoRef} id="memo" placeholder="여기에 메모를 적어보세요" value={memoText} disabled={isClearing} onChange={(e) => {
@@ -157,10 +157,11 @@ export default function Sidepanel() {
             <div className="memory-container">
                 <ul className="memory-list">
                 {
-                    memories.slice(0, 10).map(mem => {
+                    (view === 'library' ? memories : memories.slice(0,5)).map(mem => {
                         return (
                     <li className="memory-item" key={mem.id} onClick={()=>{
                         setMemoText(mem.content);
+                        setView('compose');
                     }}>
                             <div className="memory-title">{mem.title}</div>
                             <div className="memory-date">{new Date(mem.createdAt).
@@ -187,9 +188,19 @@ export default function Sidepanel() {
                         })
                     }
                     </ul>
+                    <button className="more-button" onClick={()=>{
+                        setView('library');
+                        if (view === 'library') {
+                            setView('compose');
+                        } else {
+                            setView('library');
+                        }
+                    }}>{view === 'library' ? '메모하기' : '더보기'}</button>
             </div>
 
             <div className="status" id="status">{displayText}</div>
         </div>
     )
+
+
 }

@@ -37,7 +37,7 @@ function loadMemories( key: string | undefined ) : Promise<MemoryItem[]> {
     }
     return chrome.storage.local.get(key).then(result => {
         const res = result[key];
-        return res as MemoryItem[];
+        return (res ?? []) as MemoryItem[];
     });
 }
 
@@ -47,16 +47,11 @@ function addMemory (key: string | undefined, item: MemoryItem) : Promise<MemoryI
     }
     // 기존 배열을 불러와서 맨 앞에 추가
     return chrome.storage.local.get(key).then(result => {
-        const memories = result[key] as MemoryItem[];
-        if (result[key] == undefined) {
-            return chrome.storage.local.set({ [key]: [item] }).then(() => {
-                return [item];
-            });
-        }
-        memories.unshift(item);
-        return chrome.storage.local.set({ [key]: memories }).then(() => {
+        const memories = (result[key] ?? []) as MemoryItem[];
+        const copy = [item, ...memories];
+        return chrome.storage.local.set({ [key]: copy }).then(() => {
             // 저장하고, "새 배열"을 리턴
-            return memories;
+            return copy;
         });
     });
 }
@@ -66,7 +61,7 @@ function addMemory (key: string | undefined, item: MemoryItem) : Promise<MemoryI
             return Promise.reject(new Error('key is undefined'));
         }
         return chrome.storage.local.get(key).then(result => {
-            const memories = result[key] as MemoryItem[];
+            const memories = (result[key] ?? []) as MemoryItem[];
             const filteredMemories = memories.filter(mem => mem.id !== id);
             return chrome.storage.local.set({ [key]: filteredMemories }).then(() => {
                 return filteredMemories;
