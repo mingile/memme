@@ -1,5 +1,7 @@
 # MemMe
 
+![image](./image/001.png)
+
 > 기록을 기억으로 남기는 Chrome 사이드패널 메모장
 
 ## ✨ Overview
