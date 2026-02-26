@@ -1,6 +1,6 @@
 import './sidepanel.css'
 import { useEffect, useRef, useState } from 'react';
-import { clearCurrentMemo, loadCurrentMemo, saveCurrentMemo, loadMemories, addMemory, deleteMemory, type MemoryItem } from './storage';
+import { clearCurrentMemo, loadCurrentMemo, saveCurrentMemo, loadMemories, addMemory, deleteMemory, updateMemory, type MemoryItem } from './storage';
 
 export default function Sidepanel() {
     const STORAGE_CURRENT_KEY = 'current-memo'
@@ -12,9 +12,16 @@ export default function Sidepanel() {
     const [isAdding, setIsAdding] = useState(false);
     const [memories, setMemories] = useState<MemoryItem[]>([]);
     const [view,setView] = useState<'compose' | 'library'>('compose');
+    const [activeMemoryId, setActiveMemoryId] = useState<string|null>(null);
 
+    const STATUS_LABEL ={
+        idle: '',
+        typing: '입력 중...',
+        saved: '저장됨',
+        error: '저장 실패',
+    };
 
-    const displayText = toastText !== '' ? toastText : status === 'idle' ? '' : status === 'typing' ? '입력 중...' : status === 'saved' ? '저장됨' : status === 'error' ? '저장 실패' : '';
+    const displayText = toastText !== '' ? toastText : STATUS_LABEL[status];
 
     // useRef를 사용하는 이유:
     // 1. 컴포넌트가 리렌더링되어도 값이 유지됨 (일반 변수는 리렌더링 시 초기화됨)
@@ -47,12 +54,8 @@ export default function Sidepanel() {
                 memories
             ]
         ).then(([currentMemo, memories]) => {
-            if (currentMemo != undefined) {
-                setMemoText(currentMemo);
-            }
-            if (memories != undefined) {
-                setMemories(memories);
-            }
+            setMemoText(currentMemo);
+            setMemories(memories);
         })
         .catch(err => {
                 showToast(err.message)
@@ -67,16 +70,26 @@ export default function Sidepanel() {
             if (toastTimer.current) clearTimeout(toastTimer.current);        
 }, []);
 
+    function getTitleFromContent(content: string): string {
+        return content.split('\n')[0].slice(0, 10);
+    }
+
     return (
-        <div className={"container" + (view === 'library' ? ' library' : '')}>
+        <div className={`container${view === 'library' ? ' library' : ''}`}>
+                <div className="tagline">
+                    from <span className="highlight">mem</span>o to <span className="highlight">me</span>mory
+                    </div>
             <div className="header">
-                <h1 className="title">Memo</h1>
+                <h3 className="title">{
+                memoText.length === 0 ? '무제':getTitleFromContent(memoText)
+                }</h3>
                 {
                     view === 'compose' && (
-                    <div className="header-buttons">
+                <div className="header-buttons">
                 <button id="save" disabled={isAdding} onClick={() => {
                     if (isAdding) return;
                     setIsAdding(true);
+
                     if (!memoText.trim()) {
                         showToast('메모를 입력해주세요');
                         setIsAdding(false);
@@ -88,49 +101,60 @@ export default function Sidepanel() {
                         content: memoText,
                         createdAt: new Date().toISOString(),
                     }
+                    if (activeMemoryId === null){
                     addMemory(STORAGE_MEMORIES_KEY, item).then(newList => {
-                        showToast('기억함')
-                        setMemoText('')
+                        showToast('기억함');
+                        setMemoText('');
                         setMemories(newList);
                         memoRef.current?.focus();
+                        setActiveMemoryId(null);
                     }).catch(err => {
                         showToast(err.message)
                     }).finally(() => {
                         setIsAdding(false);
-                    });
-                }}>기억</button>
+                    });}
+                    else if (activeMemoryId !== null){
+                        updateMemory(STORAGE_MEMORIES_KEY, activeMemoryId, memoText).then(newList=>{
+                            showToast('업데이트됨');                            
+                            setMemories(newList);
+                            memoRef.current?.focus();
+                        }).catch(err => {
+                            showToast(err.message)
+                        }).finally(() => {
+                            setIsAdding(false);
+                        });
+                    }
+                }}>{activeMemoryId === null ? '기억' : '수정'}</button>
                 <button id="clear" disabled={isClearing} onClick={() => {
                     if (isClearing) return;
-                    setIsClearing(prev => {
-                        return true;
-                    });
+                    setIsClearing(true);
                     if (debounceTimer.current) clearTimeout(debounceTimer.current);
                     clearCurrentMemo(STORAGE_CURRENT_KEY).then(() => {
                         setMemoText('')
                         showToast('초기화 완료')
+                        setActiveMemoryId(null);
                     }).catch(err => {
-                        if (clearMemoTimer.current) clearTimeout(clearMemoTimer.current);
-                        const backupText = memoText;
-                        setMemoText('');
-                        clearMemoTimer.current = window.setTimeout(() => {
-                            setMemoText(backupText);
-                        }, 30); 
+                        // if (clearMemoTimer.current) clearTimeout(clearMemoTimer.current);
+                        // const backupText = memoText;
+                        // setMemoText('');
+                        // clearMemoTimer.current = window.setTimeout(() => {
+                        //     setMemoText(backupText);
+                        // }, 30); 
                         showToast(err.message)
-                        if (setDefaultTimer.current) {
-                            clearTimeout(setDefaultTimer.current);
-                        }
+                        // if (setDefaultTimer.current) {
+                        //     clearTimeout(setDefaultTimer.current);
+                        // }
                         setDefaultTimer.current = window.setTimeout(() => {
                             setStatus('idle')
                         }, 1000);
                     }).finally(() => {
                         setIsClearing(false);
                     });
-                }}>메모 초기화</button>
+                }}>새 메모</button>
                 </div>
             )}
             </div>
-
-            <textarea ref={memoRef} id="memo" placeholder="여기에 메모를 적어보세요" value={memoText} disabled={isClearing} onChange={(e) => {
+            <textarea ref={memoRef} className="memo" placeholder="여기에 메모를 적어보세요" value={memoText} disabled={isClearing} onChange={(e) => {
                 const value = e.target.value
                 setMemoText(value)
                 setStatus('typing')
@@ -160,10 +184,12 @@ export default function Sidepanel() {
                     (view === 'library' ? memories : memories.slice(0,5)).map(mem => {
                         return (
                     <li className="memory-item" key={mem.id} onClick={()=>{
+                        setActiveMemoryId(mem.id);
                         setMemoText(mem.content);
                         setView('compose');
+                        showToast('메모 불러옴');
                     }}>
-                            <div className="memory-title">{mem.title}</div>
+                            <div className="memory-title">{getTitleFromContent(mem.content)}</div>
                             <div className="memory-date">{new Date(mem.createdAt).
                             toLocaleString('ko-KR', {
                                 year: 'numeric',
@@ -172,30 +198,28 @@ export default function Sidepanel() {
                                 hour: '2-digit',
                                 minute: '2-digit'
                             })}</div>
-                            <span className="delete-button" onClick={
+                            <button className="delete-button" onClick={
                                 (e)=>{
                                     e.stopPropagation();
                                     deleteMemory(STORAGE_MEMORIES_KEY, mem.id).then(res => {
                                         showToast('삭제됨')
                                         setMemories(res);
+                                        if (activeMemoryId === mem.id){
+                                            setActiveMemoryId(null);
+                                        }
                                     }).catch(err => {
                                         showToast(err.message)
                                     });
                                 }
-                            }>🗑</span>
+                            }>⌫</button>
                             </li>
                             )
                         })
                     }
                     </ul>
-                    <button className="more-button" onClick={()=>{
-                        setView('library');
-                        if (view === 'library') {
-                            setView('compose');
-                        } else {
-                            setView('library');
-                        }
-                    }}>{view === 'library' ? '메모하기' : '더보기'}</button>
+                    {memories.length>5? <button className="more-button" onClick={()=>{
+                        setView(prev => prev === 'library' ? 'compose' : 'library');
+                    }}>{(view === 'library') ? '메모하기' : '더보기'}</button> : ''}
             </div>
 
             <div className="status" id="status">{displayText}</div>

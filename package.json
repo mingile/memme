@@ -1,8 +1,8 @@
 {
   "name": "memme",
   "displayName": "MemMe",
-  "version": "0.0.1",
-  "description": "memo to memory",
+  "version": "1.0.0",
+  "description": "기록을 기억으로 남기는 Chrome 사이드패널 메모장",
   "author": "mingile",
   "scripts": {
     "dev": "plasmo dev",

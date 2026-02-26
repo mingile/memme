@@ -18,11 +18,14 @@ function loadCurrentMemo(key: string | undefined) {
     }
     return chrome.storage.local.get(key).then(result => {
         const res = result[key];
-        return res as string;
+        return res ?? '';
     });
 }
 
 function clearCurrentMemo(key: string | undefined) {
+    if (key == undefined) {
+        return Promise.reject(new Error('key is undefined'));
+    }
     return chrome.storage.local.remove(key);
     // return Promise.reject(new Error('초기화실패'));
 }
@@ -45,14 +48,32 @@ function addMemory (key: string | undefined, item: MemoryItem) : Promise<MemoryI
     if (key == undefined) {
         return Promise.reject(new Error('key is undefined'));
     }
-    // 기존 배열을 불러와서 맨 앞에 추가
     return chrome.storage.local.get(key).then(result => {
         const memories = (result[key] ?? []) as MemoryItem[];
         const copy = [item, ...memories];
         return chrome.storage.local.set({ [key]: copy }).then(() => {
-            // 저장하고, "새 배열"을 리턴
             return copy;
         });
+    });
+}
+
+function updateMemory(key: string | undefined, id: string, content: string): Promise<MemoryItem[]> {
+    if (key == undefined){
+        return Promise.reject(new Error('key is undefined'));
+    } 
+    return chrome.storage.local.get(key).then(result => {
+        const memories = (result[key] ?? []) as MemoryItem[];
+        if (!memories.find(mem => mem.id === id)) {
+            return Promise.reject(new Error('Memory not found'));    
+        }else{
+            const updateMemory = memories.map(mem => mem.id === id ? 
+            { ...mem, content, title: content.slice(0, 10) } : mem);
+            return chrome.storage.local.set({ [key]: updateMemory }).then(() => {
+                return updateMemory;
+            });
+        }
+    }).catch(err => {
+        return Promise.reject(err);
     });
 }
 
@@ -69,6 +90,6 @@ function addMemory (key: string | undefined, item: MemoryItem) : Promise<MemoryI
         });
     }
 
-export { saveCurrentMemo, loadCurrentMemo, clearCurrentMemo, loadMemories, addMemory, deleteMemory };
+export { saveCurrentMemo, loadCurrentMemo, clearCurrentMemo, loadMemories, addMemory, deleteMemory, updateMemory };
 export type { MemoryItem };
 
